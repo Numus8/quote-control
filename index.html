@@ -1,0 +1,347 @@
+
+<style>
+  .zk-root { font-family: var(--font-sans); padding: 1.5rem 0; max-width: 680px; }
+  .zk-header { margin-bottom: 1.5rem; }
+  .zk-title { font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 4px; }
+  .zk-subtitle { font-size: 14px; color: var(--color-text-secondary); margin: 0; }
+  .zk-tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .zk-tab { padding: 8px 16px; font-size: 14px; background: none; border: none; color: var(--color-text-secondary); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .zk-tab.active { color: var(--color-text-primary); border-bottom-color: var(--color-text-primary); font-weight: 500; }
+  .zk-tab:hover:not(.active) { color: var(--color-text-primary); }
+  .zk-panel { display: none; }
+  .zk-panel.active { display: block; }
+  .zk-upload-area { border: 1.5px dashed var(--color-border-secondary); border-radius: var(--border-radius-lg); padding: 2.5rem; text-align: center; cursor: pointer; transition: background 0.15s; }
+  .zk-upload-area:hover, .zk-upload-area.drag { background: var(--color-background-secondary); }
+  .zk-upload-icon { font-size: 32px; color: var(--color-text-tertiary); margin-bottom: 12px; }
+  .zk-upload-text { font-size: 15px; color: var(--color-text-secondary); margin: 0 0 4px; }
+  .zk-upload-hint { font-size: 13px; color: var(--color-text-tertiary); margin: 0; }
+  .zk-file-info { display: flex; align-items: center; gap: 10px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 14px; margin-top: 1rem; }
+  .zk-file-icon { font-size: 20px; color: var(--color-text-secondary); }
+  .zk-file-name { font-size: 14px; font-weight: 500; color: var(--color-text-primary); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .zk-file-remove { background: none; border: none; font-size: 16px; color: var(--color-text-tertiary); cursor: pointer; padding: 2px; }
+  .zk-style-select { width: 100%; padding: 0; margin-top: 1rem; }
+  .zk-analyze-btn { width: 100%; margin-top: 1rem; padding: 10px; font-size: 15px; font-weight: 500; }
+  .zk-progress { margin-top: 1rem; }
+  .zk-progress-bar-bg { height: 3px; background: var(--color-border-tertiary); border-radius: 99px; overflow: hidden; }
+  .zk-progress-bar { height: 3px; background: var(--color-text-primary); border-radius: 99px; transition: width 0.4s; }
+  .zk-progress-text { font-size: 12px; color: var(--color-text-secondary); margin-top: 6px; }
+  .zk-result-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .zk-stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px; text-align: center; }
+  .zk-stat-num { font-size: 24px; font-weight: 500; color: var(--color-text-primary); display: block; }
+  .zk-stat-label { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; display: block; }
+  .zk-stat.danger .zk-stat-num { color: var(--color-text-danger); }
+  .zk-stat.warning .zk-stat-num { color: var(--color-text-warning); }
+  .zk-stat.success .zk-stat-num { color: var(--color-text-success); }
+  .zk-section-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); letter-spacing: 0.05em; text-transform: uppercase; margin: 0 0 10px; }
+  .zk-issue { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 12px 14px; margin-bottom: 8px; }
+  .zk-issue-header { display: flex; align-items: flex-start; gap: 10px; }
+  .zk-issue-badge { font-size: 11px; padding: 2px 8px; border-radius: var(--border-radius-md); flex-shrink: 0; font-weight: 500; }
+  .badge-fehler { background: var(--color-background-danger); color: var(--color-text-danger); }
+  .badge-hinweis { background: var(--color-background-warning); color: var(--color-text-warning); }
+  .badge-info { background: var(--color-background-info); color: var(--color-text-info); }
+  .zk-issue-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin: 0; }
+  .zk-issue-body { font-size: 13px; color: var(--color-text-secondary); margin: 6px 0 0 0; line-height: 1.5; }
+  .zk-issue-orig { font-size: 12px; font-family: var(--font-mono); background: var(--color-background-secondary); border-radius: 4px; padding: 4px 8px; margin: 6px 0 0; display: block; color: var(--color-text-secondary); }
+  .zk-issue-fix { font-size: 12px; font-family: var(--font-mono); background: var(--color-background-success); border-radius: 4px; padding: 4px 8px; margin: 4px 0 0; display: block; color: var(--color-text-success); }
+  .zk-overall { border-radius: var(--border-radius-md); padding: 12px 14px; margin-bottom: 1.5rem; font-size: 14px; line-height: 1.6; }
+  .zk-overall.gut { background: var(--color-background-success); color: var(--color-text-success); }
+  .zk-overall.mittel { background: var(--color-background-warning); color: var(--color-text-warning); }
+  .zk-overall.schlecht { background: var(--color-background-danger); color: var(--color-text-danger); }
+  .zk-tip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .zk-tip-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 12px 14px; }
+  .zk-tip-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .zk-tip-icon { font-size: 18px; color: var(--color-text-secondary); }
+  .zk-tip-name { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+  .zk-tip-text { font-size: 13px; color: var(--color-text-secondary); line-height: 1.5; margin: 0; }
+  .zk-error-box { background: var(--color-background-danger); border-radius: var(--border-radius-md); padding: 12px 14px; color: var(--color-text-danger); font-size: 14px; margin-top: 1rem; }
+  .zk-copy-btn { float: right; font-size: 12px; }
+  .zk-empty { text-align: center; padding: 2rem; color: var(--color-text-tertiary); font-size: 14px; }
+</style>
+
+<div class="zk-root">
+  <h2 class="sr-only">Zitierkontrolle – KI-gestütztes Tool zur Analyse von Quellenangaben in wissenschaftlichen Arbeiten</h2>
+  <div class="zk-header">
+    <p class="zk-title">Zitierkontrolle</p>
+    <p class="zk-subtitle">KI-gestützte Analyse von Quellenangaben — Hochschule Trier</p>
+  </div>
+
+  <div class="zk-tabs">
+    <button class="zk-tab active" onclick="switchTab('analyse')">Analyse</button>
+    <button class="zk-tab" onclick="switchTab('regeln')">Häufige Fehler</button>
+    <button class="zk-tab" onclick="switchTab('stile')">Zitierstile</button>
+  </div>
+
+  <div id="tab-analyse" class="zk-panel active">
+    <div id="upload-section">
+      <div class="zk-upload-area" id="drop-zone" onclick="document.getElementById('pdf-input').click()" ondragover="handleDrag(event,true)" ondragleave="handleDrag(event,false)" ondrop="handleDrop(event)">
+        <div class="zk-upload-icon"><i class="ti ti-file-upload" aria-hidden="true"></i></div>
+        <p class="zk-upload-text">PDF hier ablegen oder klicken zum Auswählen</p>
+        <p class="zk-upload-hint">Unterstützt: PDF-Dokumente bis 10 MB</p>
+      </div>
+      <input type="file" id="pdf-input" accept=".pdf" style="display:none" onchange="handleFile(event)">
+
+      <div id="file-info" style="display:none">
+        <div class="zk-file-info">
+          <i class="ti ti-file-type-pdf zk-file-icon" aria-hidden="true"></i>
+          <span class="zk-file-name" id="file-name-display"></span>
+          <button class="zk-file-remove" onclick="removeFile()" aria-label="Datei entfernen"><i class="ti ti-x" aria-hidden="true"></i></button>
+        </div>
+      </div>
+
+      <select class="zk-style-select" id="cite-style">
+        <option value="">— Zitierstil wählen (optional) —</option>
+        <option value="APA 7">APA 7 (American Psychological Association)</option>
+        <option value="Chicago">Chicago Manual of Style</option>
+        <option value="Harvard">Harvard (Autor-Jahr)</option>
+        <option value="IEEE">IEEE (Nummeriert)</option>
+        <option value="MLA">MLA (Modern Language Association)</option>
+        <option value="DIN">DIN 1505 (Deutsch)</option>
+        <option value="Fußnoten">Fußnotensystem (Geisteswissenschaften)</option>
+      </select>
+
+      <button class="zk-analyze-btn" id="analyze-btn" onclick="startAnalysis()" disabled>
+        <i class="ti ti-search" aria-hidden="true"></i> Zitate analysieren
+      </button>
+
+      <div id="progress-area" style="display:none" class="zk-progress">
+        <div class="zk-progress-bar-bg"><div class="zk-progress-bar" id="progress-bar" style="width:0%"></div></div>
+        <p class="zk-progress-text" id="progress-text">Dokument wird geladen…</p>
+      </div>
+      <div id="error-area"></div>
+    </div>
+
+    <div id="result-section" style="display:none">
+      <div class="zk-result-summary" id="result-stats"></div>
+      <div id="result-overall"></div>
+      <p class="zk-section-title">Gefundene Probleme</p>
+      <div id="result-issues"></div>
+      <button style="margin-top: 1rem; font-size: 13px;" onclick="resetTool()">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i> Neue Analyse
+      </button>
+    </div>
+  </div>
+
+  <div id="tab-regeln" class="zk-panel">
+    <div class="zk-tip-grid">
+      <div class="zk-tip-card">
+        <div class="zk-tip-head"><i class="ti ti-user-x zk-tip-icon" aria-hidden="true"></i><span class="zk-tip-name">Fehlende Autorenangabe</span></div>
+        <p class="zk-tip-text">Autor, Jahr oder Seitenangabe fehlt komplett. Bei Direktzitaten ist die Seitenangabe Pflicht.</p>
+      </div>
+      <div class="zk-tip-card">
+        <div class="zk-tip-head"><i class="ti ti-quote zk-tip-icon" aria-hidden="true"></i><span class="zk-tip-name">Indirektes Zitat ohne Beleg</span></div>
+        <p class="zk-tip-text">Paraphrasen werden oft ohne Quellenangabe übernommen — gilt trotzdem als Plagiat.</p>
+      </div>
+      <div class="zk-tip-card">
+        <div class="zk-tip-head"><i class="ti ti-link-off zk-tip-icon" aria-hidden="true"></i><span class="zk-tip-name">URL ohne Zugriffsdatum</span></div>
+        <p class="zk-tip-text">Webquellen brauchen immer das Abrufdatum, da Inhalte sich ändern können.</p>
+      </div>
+      <div class="zk-tip-card">
+        <div class="zk-tip-head"><i class="ti ti-switch-2 zk-tip-icon" aria-hidden="true"></i><span class="zk-tip-name">Inkonsistenter Zitierstil</span></div>
+        <p class="zk-tip-text">Wechsel zwischen APA, Harvard und Fußnoten innerhalb eines Dokuments ist ein häufiger Fehler.</p>
+      </div>
+      <div class="zk-tip-card">
+        <div class="zk-tip-head"><i class="ti ti-users zk-tip-icon" aria-hidden="true"></i><span class="zk-tip-name">et al. falsch verwendet</span></div>
+        <p class="zk-tip-text">Bei APA 7 gilt: ab 3 Autoren → „et al." ab dem ersten Zitat. Frühere APA-Versionen regeln das anders.</p>
+      </div>
+      <div class="zk-tip-card">
+        <div class="zk-tip-head"><i class="ti ti-repeat zk-tip-icon" aria-hidden="true"></i><span class="zk-tip-name">ebd. / ibid. falsch</span></div>
+        <p class="zk-tip-text">„Ebd." darf nur direkt nach der Erstnennung stehen. Nach einer anderen Quelle muss vollständig neu zitiert werden.</p>
+      </div>
+      <div class="zk-tip-card">
+        <div class="zk-tip-head"><i class="ti ti-list-search zk-tip-icon" aria-hidden="true"></i><span class="zk-tip-name">Quelle im Text, nicht im Literaturverzeichnis</span></div>
+        <p class="zk-tip-text">Jede im Text zitierte Quelle muss im Literaturverzeichnis auftauchen — und umgekehrt.</p>
+      </div>
+      <div class="zk-tip-card">
+        <div class="zk-tip-head"><i class="ti ti-edit zk-tip-icon" aria-hidden="true"></i><span class="zk-tip-name">Zitat nicht als solches markiert</span></div>
+        <p class="zk-tip-text">Direkte Übernahmen von Textpassagen müssen in Anführungszeichen stehen, auch wenn eine Quelle angegeben ist.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-stile" class="zk-panel">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="zk-issue" style="border-left:3px solid #378ADD;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0">
+        <p class="zk-issue-title">APA 7 — Autor-Jahr im Text</p>
+        <p class="zk-issue-body">Verbreitet in Sozialwissenschaften, Psychologie, Pädagogik.</p>
+        <code class="zk-issue-orig">Im Text: (Müller, 2021, S. 45)</code>
+        <code class="zk-issue-fix">Literaturverzeichnis: Müller, A. (2021). Titel des Werkes. Verlag.</code>
+      </div>
+      <div class="zk-issue" style="border-left:3px solid #1D9E75;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0">
+        <p class="zk-issue-title">Chicago — Fußnoten oder Autor-Datum</p>
+        <p class="zk-issue-body">Häufig in Geisteswissenschaften, Geschichte, Literatur.</p>
+        <code class="zk-issue-orig">Im Text (Notes): ¹ Müller, Titel, 45.</code>
+        <code class="zk-issue-fix">Vollbeleg: Müller, Anna. Titel des Werkes. Stadt: Verlag, 2021.</code>
+      </div>
+      <div class="zk-issue" style="border-left:3px solid #D85A30;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0">
+        <p class="zk-issue-title">IEEE — Nummerierte Quellen</p>
+        <p class="zk-issue-body">Standard in Ingenieurwesen, Informatik, Naturwissenschaften.</p>
+        <code class="zk-issue-orig">Im Text: [1] oder [1, S. 45]</code>
+        <code class="zk-issue-fix">Literaturverzeichnis: [1] A. Müller, „Titel", Verlag, 2021.</code>
+      </div>
+      <div class="zk-issue" style="border-left:3px solid #BA7517;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0">
+        <p class="zk-issue-title">Harvard — Autor-Jahr (britische Variante)</p>
+        <p class="zk-issue-body">Ähnlich APA, aber mit abweichenden Formatdetails. Kein Standard, viele Varianten.</p>
+        <code class="zk-issue-orig">Im Text: (Müller 2021: 45)</code>
+        <code class="zk-issue-fix">Literaturverzeichnis: Müller, A. 2021. Titel. Stadt: Verlag.</code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentFile = null;
+let currentBase64 = null;
+
+function switchTab(name) {
+  document.querySelectorAll('.zk-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.zk-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function handleDrag(e, over) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.toggle('drag', over);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  handleDrag(e, false);
+  const f = e.dataTransfer.files[0];
+  if (f && f.type === 'application/pdf') loadFile(f);
+}
+
+function handleFile(e) {
+  const f = e.target.files[0];
+  if (f) loadFile(f);
+}
+
+function loadFile(f) {
+  currentFile = f;
+  document.getElementById('file-name-display').textContent = f.name;
+  document.getElementById('file-info').style.display = 'block';
+  document.getElementById('analyze-btn').disabled = false;
+  const r = new FileReader();
+  r.onload = ev => { currentBase64 = ev.target.result.split(',')[1]; };
+  r.readAsDataURL(f);
+}
+
+function removeFile() {
+  currentFile = null; currentBase64 = null;
+  document.getElementById('file-info').style.display = 'none';
+  document.getElementById('analyze-btn').disabled = true;
+  document.getElementById('pdf-input').value = '';
+}
+
+function setProgress(pct, text) {
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = text;
+}
+
+async function startAnalysis() {
+  if (!currentBase64) return;
+  const style = document.getElementById('cite-style').value;
+  document.getElementById('analyze-btn').disabled = true;
+  document.getElementById('progress-area').style.display = 'block';
+  document.getElementById('error-area').innerHTML = '';
+  setProgress(10, 'Dokument wird vorbereitet…');
+
+  const styleHint = style ? `Der verwendete Zitierstil ist: ${style}.` : 'Der Zitierstil ist nicht bekannt — bitte erkenne ihn automatisch.';
+
+  const prompt = `Du bist ein Experte für wissenschaftliches Zitieren an deutschsprachigen Hochschulen.
+Analysiere das beigefügte PDF-Dokument auf Zitierfehler und Quellenprobleme.
+${styleHint}
+
+Gib deine Antwort AUSSCHLIESSLICH als JSON zurück, kein Markdown, keine Erklärungen davor oder danach:
+{
+  "erkannterStil": "string",
+  "gesamtbewertung": "gut|mittel|schlecht",
+  "gesamtkommentar": "string (1-2 Sätze)",
+  "zitatAnzahl": number,
+  "fehlerAnzahl": number,
+  "hinweisAnzahl": number,
+  "probleme": [
+    {
+      "typ": "Fehler|Hinweis|Info",
+      "titel": "string",
+      "beschreibung": "string",
+      "original": "string oder null (betroffene Textstelle)",
+      "vorschlag": "string oder null (korrigierte Version)"
+    }
+  ]
+}
+Analysiere gründlich: fehlende Autorenangaben, fehlende Seitenzahlen bei Direktzitaten, Inkonsistenzen im Stil, fehlende Zugriffsdaten bei URLs, et-al-Fehler, Diskrepanzen zwischen Text und Literaturverzeichnis, nicht als Zitat markierte wörtliche Übernahmen, falsche ebd./ibid.-Verwendung.
+Falls keine oder kaum Zitate im Dokument gefunden werden, gib das klar im Kommentar an.`;
+
+  try {
+    setProgress(30, 'Dokument wird an KI übermittelt…');
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: currentBase64 } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
+    });
+    setProgress(70, 'Antwort wird verarbeitet…');
+    const data = await resp.json();
+    const raw = data.content.map(i => i.text || '').join('').replace(/```json|```/g, '').trim();
+    const result = JSON.parse(raw);
+    setProgress(100, 'Fertig!');
+    setTimeout(() => showResult(result), 300);
+  } catch(err) {
+    document.getElementById('progress-area').style.display = 'none';
+    document.getElementById('error-area').innerHTML = `<div class="zk-error-box"><i class="ti ti-alert-circle" aria-hidden="true"></i> Fehler bei der Analyse: ${err.message}</div>`;
+    document.getElementById('analyze-btn').disabled = false;
+  }
+}
+
+function showResult(r) {
+  document.getElementById('upload-section').style.display = 'none';
+  document.getElementById('result-section').style.display = 'block';
+
+  const total = (r.fehlerAnzahl || 0) + (r.hinweisAnzahl || 0);
+  document.getElementById('result-stats').innerHTML = `
+    <div class="zk-stat"><span class="zk-stat-num">${r.zitatAnzahl ?? '?'}</span><span class="zk-stat-label">Zitate gefunden</span></div>
+    <div class="zk-stat danger"><span class="zk-stat-num">${r.fehlerAnzahl ?? 0}</span><span class="zk-stat-label">Fehler</span></div>
+    <div class="zk-stat warning"><span class="zk-stat-num">${r.hinweisAnzahl ?? 0}</span><span class="zk-stat-label">Hinweise</span></div>
+    <div class="zk-stat ${r.gesamtbewertung === 'gut' ? 'success' : r.gesamtbewertung === 'mittel' ? 'warning' : 'danger'}">
+      <span class="zk-stat-num">${r.gesamtbewertung === 'gut' ? '✓' : r.gesamtbewertung === 'mittel' ? '~' : '!'}</span>
+      <span class="zk-stat-label">${r.erkannterStil || 'Stil erkannt'}</span>
+    </div>`;
+
+  document.getElementById('result-overall').innerHTML =
+    `<div class="zk-overall ${r.gesamtbewertung}"><strong>Gesamtbewertung:</strong> ${r.gesamtkommentar}</div>`;
+
+  const issuesEl = document.getElementById('result-issues');
+  if (!r.probleme || r.probleme.length === 0) {
+    issuesEl.innerHTML = '<div class="zk-empty"><i class="ti ti-circle-check" aria-hidden="true"></i><br>Keine Probleme gefunden.</div>';
+    return;
+  }
+  issuesEl.innerHTML = r.probleme.map(p => `
+    <div class="zk-issue">
+      <div class="zk-issue-header">
+        <span class="zk-issue-badge badge-${p.typ === 'Fehler' ? 'fehler' : p.typ === 'Hinweis' ? 'hinweis' : 'info'}">${p.typ}</span>
+        <p class="zk-issue-title">${p.titel}</p>
+      </div>
+      <p class="zk-issue-body">${p.beschreibung}</p>
+      ${p.original ? `<code class="zk-issue-orig">Gefunden: ${p.original}</code>` : ''}
+      ${p.vorschlag ? `<code class="zk-issue-fix">Vorschlag: ${p.vorschlag}</code>` : ''}
+    </div>`).join('');
+}
+
+function resetTool() {
+  document.getElementById('upload-section').style.display = 'block';
+  document.getElementById('result-section').style.display = 'none';
+  document.getElementById('progress-area').style.display = 'none';
+  document.getElementById('analyze-btn').disabled = !currentFile;
+  removeFile();
+}
+</script>
