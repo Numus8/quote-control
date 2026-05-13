@@ -275,7 +275,7 @@ Falls keine oder kaum Zitate im Dokument gefunden werden, gib das klar im Kommen
 
   try {
     setProgress(30, 'Dokument wird an KI übermittelt…');
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch("https://anthropic-proxy.arne-putscher.workers.dev", {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
