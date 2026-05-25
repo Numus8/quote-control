@@ -308,10 +308,15 @@ Falls keine oder kaum Zitate im Dokument gefunden werden, gib das klar im Kommen
         }]
       })
     });
-    setProgress(70, 'Antwort wird verarbeitet…');
-    const data = await resp.json();
-    const raw = data.content.map(i => i.text || '').join('').replace(/```json|```/g, '').trim();
-    const result = JSON.parse(raw);
+setProgress(70, 'Antwort wird verarbeitet…');
+const data = await resp.json();
+
+if (data.stop_reason === 'max_tokens') {
+  throw new Error('Antwort zu lang – Dokument ist möglicherweise zu umfangreich.');
+}
+
+const raw = data.content.map(i => i.text || '').join('').replace(/```json|```/g, '').trim();
+const result = JSON.parse(raw);
     setProgress(100, 'Fertig!');
     setTimeout(() => showResult(result), 300);
   } catch(err) {
